@@ -1,12 +1,13 @@
 // Copyright (c) RoochNetwork
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe, it, expect } from 'vitest'
+import {describe, expect, it} from 'vitest'
 
-import { Ed25519Keypair, Secp256k1Keypair } from '../keypairs/index.js'
-import { bytesEqual } from '../utils/index.js'
+import {Ed25519Keypair, Secp256k1Keypair} from '../keypairs/index.js'
+import {bytesEqual} from '../utils/index.js'
 
-import { bcs } from './index.js'
+import {bcs} from './index.js'
+import {RawBytes} from "./bcs"
 
 describe('BCS', () => {
   it('Address', () => {
@@ -24,5 +25,25 @@ describe('BCS', () => {
     const bcs5 = bcs.Address.serialize(bitcoinAddress.genRoochAddress()).toBytes()
 
     expect(bytesEqual(bcs4, bcs5)).toBeTruthy()
+  })
+
+  it('ScriptCall', () => {
+    const scriptCall = bcs.ScriptCall.serialize(
+      {
+        code: '0x1',
+        args: [],
+        typeArgs: []
+      }
+    )
+
+    console.log(scriptCall)
+  })
+
+  it('raw', () => {
+    const rawBytes1 = RawBytes().serialize('1F').toBytes()
+
+    const raw = RawBytes().parse(rawBytes1)
+
+    console.log(raw)
   })
 })

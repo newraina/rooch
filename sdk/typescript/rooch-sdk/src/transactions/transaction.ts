@@ -1,12 +1,12 @@
 // Copyright (c) RoochNetwork
 // SPDX-License-Identifier: Apache-2.0
 
-import { bcs } from '../bcs/index.js'
-import { Authenticator } from '../crypto/index.js'
-import { address, Bytes, u64 } from '../types/index.js'
+import {bcs} from '../bcs/index.js'
+import {Authenticator} from '../crypto/index.js'
+import {address, Bytes, u64} from '../types/index.js'
 
-import { MoveAction, TransactionData } from './transactionData.js'
-import { CallFunctionArgs } from './types.js'
+import {MoveAction, TransactionData} from './transactionData.js'
+import {CallFunctionArgs, CallScriptArgs} from './types.js'
 
 export class Transaction {
   private data: TransactionData | undefined
@@ -20,6 +20,15 @@ export class Transaction {
   ) {
     this.info = input.info
     this.data = new TransactionData(MoveAction.newCallFunction(input))
+  }
+
+  scriptCall(
+    input: {
+      info?: string
+    } & CallScriptArgs,
+  ) {
+    this.info = input.info
+    this.data = new TransactionData(MoveAction.newCallScript(input))
   }
 
   getInfo() {

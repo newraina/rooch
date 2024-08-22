@@ -1,9 +1,12 @@
 // Copyright (c) RoochNetwork
 // SPDX-License-Identifier: Apache-2.0
 
-import { beforeAll, describe, expect, it } from 'vitest'
-import { TestBox } from '../setup.js'
-import { Transaction } from '../../src/transactions/index.js'
+import { Buffer } from 'buffer';
+import {beforeAll, describe, expect, it} from 'vitest'
+import {TestBox} from '../setup.js'
+import {Transaction} from '../../src/transactions/index.js'
+import {Args} from "../../src"
+import {readFileSync} from "node:fs"
 
 describe('Checkpoints Transaction API', () => {
   let testBox: TestBox
@@ -42,4 +45,23 @@ describe('Checkpoints Transaction API', () => {
 
     expect(result.data.length).toBeGreaterThan(0)
   })
+
+  it('script call should be success', async () => {
+    const tx = new Transaction()
+
+    const buffer = readFileSync("./src/transactions/sc/build/sc/bytecode_scripts/main.mv", { encoding: null });
+    // buffer to Uint8Array
+    const bytecode = new Uint8Array(buffer);
+
+    tx.scriptCall({
+      code: new Uint8Array([]),
+      args: [],
+      typeArgs: []
+    })
+
+    const result = await testBox.signAndExecuteTransaction(tx)
+
+    expect(result).toBeTruthy()
+  })
+
 })

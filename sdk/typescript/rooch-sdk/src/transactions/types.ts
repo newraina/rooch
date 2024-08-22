@@ -3,8 +3,8 @@
 
 import { Args, type TypeTag } from '../bcs/index.js'
 
-export type CallScript = {
-  code: string
+export type CallScriptArgs = {
+  code: string | Uint8Array
   args: Args[]
   typeArgs: TypeTag[]
 }

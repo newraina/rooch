@@ -73,6 +73,7 @@ export class RoochHTTPTransport implements RoochTransport {
     const data = await res.json()
 
     if ('error' in data && data.error != null) {
+      console.error(data.error, data)
       throw new JsonRpcError(data.error.message, data.error.code)
     }
 

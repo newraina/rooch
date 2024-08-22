@@ -5,7 +5,7 @@ import { sha3_256 } from '../utils/index.js'
 import { normalizeRoochAddress } from '../address/index.js'
 import { Args, bcs, Serializer } from '../bcs/index.js'
 import { address, Bytes, identifier, u8, u64 } from '../types/index.js'
-import { CallFunctionArgs, CallScript } from './types.js'
+import { CallFunctionArgs, CallScriptArgs } from './types.js'
 
 const DEFAULT_GAS = BigInt(50000000)
 
@@ -45,6 +45,22 @@ export class CallFunction {
   }
 }
 
+class CallScript {
+  code: string | Uint8Array
+  args: Args[]
+  typeArgs: string[]
+
+  constructor(input: CallScriptArgs) {
+    this.code = input.code
+    this.args = input.args || []
+    this.typeArgs = input.typeArgs?.map((item) => Serializer.typeTagToString(item)) || []
+  }
+
+  encodeArgsToByteArrays(): u8[][] {
+    return this.args.map((item) => item.encode()).map((item) => Array.from(item))
+  }
+}
+
 type MoveActionType = CallFunction | CallScript
 
 export class MoveAction {
@@ -60,8 +76,8 @@ export class MoveAction {
     return new MoveAction(1, new CallFunction(input))
   }
 
-  static newCallScript(input: CallScript) {
-    return new MoveAction(2, input)
+  static newCallScript(input: CallScriptArgs) {
+    return new MoveAction(2, new CallScript(input))
   }
 }
 
@@ -87,7 +103,30 @@ export class TransactionData {
   }
 
   encode(): Bytes {
-    const call = this.action.val as CallFunction
+    if (this.action.scheme === 1) {
+      const call = this.action.val as CallFunction
+
+      return bcs.RoochTransactionData.serialize({
+        sender: this.sender!,
+        sequenceNumber: this.sequenceNumber!,
+        chainId: this.chainId!,
+        maxGas: this.maxGas,
+        action: {
+          kind: 'CallFunction',
+          functionId: {
+            moduleId: {
+              address: call.address,
+              name: call.module,
+            },
+            name: call.function,
+          },
+          args: Array.from(call.encodeArgsToByteArrays()),
+          typeArgs: call.typeArgs,
+        },
+      }).toBytes()
+    }
+
+    const call = this.action.val as CallScript
 
     return bcs.RoochTransactionData.serialize({
       sender: this.sender!,
@@ -95,18 +134,14 @@ export class TransactionData {
       chainId: this.chainId!,
       maxGas: this.maxGas,
       action: {
-        kind: 'CallFunction',
-        functionId: {
-          moduleId: {
-            address: call.address,
-            name: call.module,
-          },
-          name: call.function,
-        },
+        kind: 'ScriptCall',
+        code: call.code,
         args: Array.from(call.encodeArgsToByteArrays()),
         typeArgs: call.typeArgs,
       },
-    }).toBytes()
+      }).toBytes()
+
+    
   }
 
   hash(): Bytes {

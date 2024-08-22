@@ -1,7 +1,7 @@
 // Copyright (c) RoochNetwork
 // SPDX-License-Identifier: Apache-2.0
 
-import { bcs, BcsType, BcsTypeOptions } from '@mysten/bcs'
+import { bcs, BcsReader, BcsType, BcsTypeOptions, InferBcsInput, InferBcsType } from '@mysten/bcs'
 
 import { address, Bytes } from '../types/index.js'
 import { bytes, CoderType, fromHEX, toHEX } from '../utils/index.js'
@@ -41,14 +41,18 @@ export const raw = <T, Input>(
 ): BcsType<T[], Iterable<Input> & { length: number }> => {
   return new BcsType<T[], Iterable<Input> & { length: number }>({
     name: `vector<${type.name}>`,
-    read: (reader) => {
+    read: (reader: BcsReader) => {
       const result: T[] = []
+
+      console.log('in read', length)
+
       for (let i = 0; i < length; i++) {
         result[i] = type.read(reader)
       }
       return result
     },
     write: (value, writer) => {
+      console.log('in write', value)
       for (const item of value) {
         type.write(item, writer)
       }
@@ -166,7 +170,7 @@ export const FunctionId = bcs.struct('FunctionId', {
 
 export const ScriptCall = bcs.struct('ScriptCall', {
   code: RawBytes(),
-  args: bcs.vector(bcs.u8()),
+  args: bcs.vector(bcs.vector(bcs.u8())),
   typeArgs: bcs.vector(TypeTag),
 })
 
@@ -190,6 +194,9 @@ export const RoochTransactionData = bcs.struct('RoochTransactionData', {
   maxGas: bcs.u64(),
   action: MoveAction,
 })
+
+type MyStructType = InferBcsType<typeof MoveAction>; // { id: string; name: string; }
+type MyStructInput = InferBcsInput<typeof MoveAction>
 
 export const Authenticator = bcs.struct('Authenticator', {
   authValidatorId: bcs.u64(),
