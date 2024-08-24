@@ -77,7 +77,7 @@ export class MoveAction {
   }
 
   static newCallScript(input: CallScriptArgs) {
-    return new MoveAction(2, new CallScript(input))
+    return new MoveAction(0, new CallScript(input))
   }
 }
 

@@ -51,10 +51,10 @@ describe('Checkpoints Transaction API', () => {
 
     const buffer = readFileSync("./src/transactions/sc/build/sc/bytecode_scripts/main.mv", { encoding: null });
     // buffer to Uint8Array
-    const bytecode = new Uint8Array(buffer);
+    const bytecode = Uint8Array.from(buffer);
 
     tx.scriptCall({
-      code: new Uint8Array([]),
+      code: bytecode,
       args: [],
       typeArgs: []
     })
